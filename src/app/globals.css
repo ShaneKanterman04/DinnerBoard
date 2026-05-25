@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f5ee;
+  --foreground: #1f2933;
 }
 
 @theme inline {
@@ -12,15 +12,100 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+button, input, textarea, select {
+  font: inherit;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.panel {
+  border: 1px solid #d7d2c8;
+  border-radius: 8px;
+  background: #fffaf0;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgb(31 41 51 / 0.06);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #18212f;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid #c9c2b5;
+  border-radius: 6px;
+  background: white;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #356859;
+  box-shadow: 0 0 0 3px rgb(53 104 89 / 0.15);
+}
+
+.primary, .secondary, .tab, .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 6px;
+  font-weight: 800;
+  min-height: 2.35rem;
+}
+
+.primary {
+  background: #356859;
+  color: white;
+  padding: 0.55rem 0.85rem;
+}
+
+.secondary, .tab, .icon-button {
+  border: 1px solid #c9c2b5;
+  background: white;
+  color: #263340;
+  padding: 0.5rem 0.75rem;
+}
+
+.icon-button {
+  width: 2.35rem;
+  padding: 0;
+}
+
+.tab-active {
+  border-color: #356859;
+  background: #356859;
+  color: white;
+}
+
+.muted {
+  color: #667085;
+  font-weight: 500;
+}
+
+.badge {
+  border-radius: 999px;
+  background: #e8f1ed;
+  color: #295548;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 800;
 }

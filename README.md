@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DinnerBoard
 
-## Getting Started
+DinnerBoard is a self-hosted family dinner planner and shared grocery list. It is built for one household per install: Mom plans the week, everyone can add groceries and suggest meals, and the whole board updates live across phones and laptops.
 
-First, run the development server:
+## MVP Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+- Weekly dinner board with recipe, custom, leftovers, takeout, and undecided states
+- Manual recipe book with ingredients, steps, servings, tags, and source URL
+- One active shared grocery list with sections, quantities, checked items, and added-by tracking
+- Recipe ingredients can be pushed to the grocery list
+- Family meal suggestions with planner accept/dismiss workflow
+- Invite-code onboarding and username-only return login
+- Realtime updates through server-sent events
+- Installable PWA shell with service worker and notification endpoint
+- SQLite persistence in a Docker named volume
+
+## Local Development
+
+```sh
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The dev server listens on `0.0.0.0` by default.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Seed starter recipes:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```sh
+pnpm seed
+```
 
-## Learn More
+## Self-Hosting
 
-To learn more about Next.js, take a look at the following resources:
+```sh
+docker compose up --build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Persistent data lives in the `dinnerboard-data` named volume. The app health endpoint is `/api/health`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Hostlet
 
-## Deploy on Vercel
+This repo includes `hostlet.yml` for a Hostlet compose deployment:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```yaml
+version: 1
+runtime: compose
+compose:
+  file: compose.yaml
+  web_service: web
+  port: 3000
+  health_path: /api/health
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Auth Tradeoff
+
+DinnerBoard intentionally uses low-friction household auth: invite code for first join, then username-only login. That is good for family usability, but it is not a high-security model. Self-hosters should keep the app behind trusted access if the household data is sensitive.
+
+## Checks
+
+```sh
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
