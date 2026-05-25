@@ -28,7 +28,7 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export default function Home() {
-  const [state, setState] = useState<AppState>({ session: null, setup: true, recipes: [], slots: [], groceries: [], suggestions: [], activity: [] });
+  const [state, setState] = useState<AppState>({ session: null, setup: false, recipes: [], slots: [], groceries: [], suggestions: [], activity: [] });
   const [tab, setTab] = useState("week");
   const [error, setError] = useState("");
   const weekStart = useMemo(() => mondayOf(), []);
@@ -124,6 +124,9 @@ export default function Home() {
 
 function AuthScreen({ setup, onDone, onError, error }: { setup: boolean; onDone: () => void; onError: (x: string) => void; error: string }) {
   const [mode, setMode] = useState(setup ? "login" : "setup");
+  useEffect(() => {
+    setMode(setup ? "login" : "setup");
+  }, [setup]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.currentTarget));
