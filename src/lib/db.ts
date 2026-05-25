@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
+import { normalizeIngredientName, rankIngredientSuggestions, type IngredientSuggestion } from "@/lib/ingredients";
 import type { Activity, GroceryItem, Household, MealSlot, Member, Recipe, Role, Session, Suggestion } from "@/lib/types";
 
 const dataDir = process.env.DATA_DIR || path.join(process.cwd(), ".data");
@@ -265,9 +266,17 @@ export function getGroceries(householdId: string) {
 export function addGrocery(householdId: string, member: Member, input: Partial<GroceryItem>) {
   const item = { id: id(), name: clean(input.name, 100), quantity: clean(input.quantity, 40), section: clean(input.section, 40) || "Other", source: clean(input.source, 80), at: now() };
   if (!item.name) throw new Error("Grocery item name is required.");
+  const duplicate = findActiveGroceryDuplicate(householdId, item.name);
+  if (duplicate && !input.id) return { duplicate, pending: item };
   db.prepare("INSERT INTO grocery_items VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)").run(item.id, householdId, item.name, item.quantity, item.section, item.source, member.id, item.at, item.at);
   activity(householdId, member, "grocery.added", `${member.name} added ${item.name}.`);
   return item;
+}
+
+export function findActiveGroceryDuplicate(householdId: string, name: string) {
+  const normalized = normalizeIngredientName(name);
+  if (!normalized) return null;
+  return getGroceries(householdId).find((item) => !item.checked && normalizeIngredientName(item.name) === normalized) || null;
 }
 
 export function addRecipeIngredientsToGroceries(householdId: string, member: Member, recipeId: string) {
@@ -281,9 +290,19 @@ export function addRecipeIngredientsToGroceries(householdId: string, member: Mem
   return parsed.ingredients.length;
 }
 
-export function updateGrocery(householdId: string, member: Member, idValue: string, checked: boolean) {
-  db.prepare("UPDATE grocery_items SET checked = ?, updated_at = ? WHERE id = ? AND household_id = ?").run(checked ? 1 : 0, now(), idValue, householdId);
-  activity(householdId, member, "grocery.checked", `${member.name} updated the grocery list.`);
+export function updateGrocery(householdId: string, member: Member, input: Partial<GroceryItem> & { id: string }) {
+  const current = db.prepare("SELECT * FROM grocery_items WHERE id = ? AND household_id = ?").get(input.id, householdId) as any;
+  if (!current) throw new Error("Grocery item was not found.");
+  const next = {
+    name: input.name === undefined ? current.name : clean(input.name, 100),
+    quantity: input.quantity === undefined ? current.quantity : clean(input.quantity, 40),
+    section: input.section === undefined ? current.section : clean(input.section, 40) || "Other",
+    source: input.source === undefined ? current.source : clean(input.source, 80),
+    checked: input.checked === undefined ? current.checked : input.checked ? 1 : 0,
+  };
+  db.prepare("UPDATE grocery_items SET name = ?, quantity = ?, section = ?, source = ?, checked = ?, updated_at = ? WHERE id = ? AND household_id = ?")
+    .run(next.name, next.quantity, next.section, next.source, next.checked, now(), input.id, householdId);
+  activity(householdId, member, "grocery.updated", `${member.name} updated ${next.name}.`);
 }
 
 export function clearChecked(householdId: string, member: Member) {
@@ -317,6 +336,21 @@ export function getActivity(householdId: string) {
   return db.prepare("SELECT * FROM activities WHERE household_id = ? ORDER BY created_at DESC LIMIT 30").all(householdId).map((row: any): Activity => ({
     id: row.id, kind: row.kind, message: row.message, actorName: row.actor_name, createdAt: row.created_at,
   }));
+}
+
+export function getIngredientSuggestions(householdId: string, query: string) {
+  const learned = new Map<string, IngredientSuggestion>();
+  for (const item of getGroceries(householdId)) {
+    const key = normalizeIngredientName(item.name);
+    if (key) learned.set(key, { name: item.name, section: item.section, source: "learned" });
+  }
+  for (const recipe of getRecipes(householdId)) {
+    for (const ingredient of recipe.ingredients) {
+      const key = normalizeIngredientName(ingredient);
+      if (key) learned.set(key, { name: ingredient, section: "Recipe", source: "learned" });
+    }
+  }
+  return rankIngredientSuggestions(query, [...learned.values()], 12);
 }
 
 function activity(householdId: string, member: Pick<Member, "id" | "name">, kind: string, message: string) {

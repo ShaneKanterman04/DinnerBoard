@@ -62,7 +62,7 @@ label {
   box-shadow: 0 0 0 3px rgb(53 104 89 / 0.15);
 }
 
-.primary, .secondary, .tab, .icon-button {
+.primary, .secondary, .tab, .icon-button, .mobile-tab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -88,6 +88,67 @@ label {
 .icon-button {
   width: 2.35rem;
   padding: 0;
+}
+
+.mobile-tab {
+  min-height: 3.25rem;
+  flex-direction: column;
+  gap: 0.15rem;
+  border-radius: 8px;
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.mobile-tab-active {
+  background: #e8f1ed;
+  color: #295548;
+}
+
+.grocery-row {
+  display: flex;
+  min-height: 4.25rem;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.8rem 0;
+}
+
+.suggestions-popover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 40;
+  max-height: 17rem;
+  overflow: auto;
+  border: 1px solid #c9c2b5;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 12px 30px rgb(31 41 51 / 0.16);
+}
+
+.suggestions-popover button {
+  display: flex;
+  min-height: 3rem;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.8rem;
+  text-align: left;
+}
+
+.suggestions-popover button + button {
+  border-top: 1px solid #eee7dc;
+}
+
+.suggestions-popover span {
+  font-weight: 800;
+}
+
+.suggestions-popover small {
+  color: #667085;
+  white-space: nowrap;
 }
 
 .tab-active {

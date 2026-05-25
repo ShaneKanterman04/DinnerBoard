@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ count });
     }
     const item = addGrocery(session.household.id, session.member, body);
+    if ("duplicate" in item) return NextResponse.json(item, { status: 409 });
     broadcast(session.household.id);
     return NextResponse.json({ item });
   } catch (error) {
@@ -32,7 +33,7 @@ export async function PATCH(request: Request) {
   try {
     const session = await requireSession();
     const body = await request.json();
-    updateGrocery(session.household.id, session.member, body.id, Boolean(body.checked));
+    updateGrocery(session.household.id, session.member, body);
     broadcast(session.household.id);
     return NextResponse.json({ ok: true });
   } catch (error) {
@@ -50,4 +51,3 @@ export async function DELETE() {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not clear groceries." }, { status: 400 });
   }
 }
-
